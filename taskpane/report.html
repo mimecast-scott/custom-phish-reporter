@@ -399,12 +399,6 @@
         </div>
       </div>
 
-      <!-- Mimecast headers -->
-      <div class="mc-headers" id="mc-headers-card" style="display:none">
-        <div class="section-label">Mimecast Headers</div>
-        <div id="mc-headers-list"></div>
-      </div>
-
       <!-- Classification -->
       <div class="classification">
         <div class="section-label">Email Classification</div>
@@ -533,26 +527,8 @@
     }
 
     function renderMimecastHeaders(headers) {
-      var container = document.getElementById("mc-headers-list");
-      var card = document.getElementById("mc-headers-card");
-      var keys = Object.keys(headers);
-
-      if (keys.length === 0) {
-        card.style.display = "none";
-        return;
-      }
-
-      card.style.display = "block";
-      container.innerHTML = "";
-
-      keys.forEach(function (key) {
-        var row = document.createElement("div");
-        row.className = "mc-header-row";
-        row.innerHTML =
-          '<span class="mc-header-name">' + escapeHtml(key) + '</span>' +
-          '<span class="mc-header-value">' + escapeHtml(headers[key]) + '</span>';
-        container.appendChild(row);
-      });
+      // Headers are captured in emailData.mimecastHeaders for the API
+      // payload but not displayed to the user in the taskpane.
     }
 
     function escapeHtml(str) {
