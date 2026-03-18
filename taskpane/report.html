@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report Phish</title>
+
+  <!-- Office.js — MUST be loaded from this CDN -->
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      color: #323130;
+      background: #faf9f8;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Shared icon circles */
+    .icon-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .icon-circle svg { width: 24px; height: 24px; fill: #fff; }
+    .icon-circle.red { background: #d13438; }
+    .icon-circle.green { background: #107c10; }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #201f1e;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #605e5c;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    /* Email preview card */
+    .email-preview {
+      background: #fff;
+      border: 1px solid #edebe9;
+      border-radius: 6px;
+      padding: 14px;
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .email-preview .field { margin-bottom: 8px; }
+    .email-preview .field:last-child { margin-bottom: 0; }
+
+    .email-preview .label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #605e5c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .email-preview .value {
+      font-size: 13px;
+      color: #323130;
+      word-break: break-word;
+    }
+
+    /* Classification section */
+    .classification {
+      background: #fff;
+      border: 1px solid #edebe9;
+      border-radius: 6px;
+      padding: 14px;
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .classification .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #605e5c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .disposition-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .disposition-btn {
+      flex: 1 1 calc(50% - 4px);
+      padding: 10px 8px;
+      border: 2px solid #edebe9;
+      border-radius: 6px;
+      background: #faf9f8;
+      font-size: 13px;
+      font-weight: 500;
+      color: #605e5c;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .disposition-btn:hover {
+      border-color: #c8c6c4;
+      color: #323130;
+    }
+
+    .disposition-btn.selected {
+      border-color: #d13438;
+      background: rgba(209, 52, 56, 0.06);
+      color: #d13438;
+      font-weight: 600;
+    }
+
+    .disposition-btn .d-icon {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .comment-box {
+      width: 100%;
+      min-height: 60px;
+      max-height: 120px;
+      padding: 10px;
+      border: 1px solid #edebe9;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      color: #323130;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .comment-box::placeholder { color: #c8c6c4; }
+    .comment-box:focus { border-color: #d13438; }
+
+    /* Auto-delete toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border: 1px solid #edebe9;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      color: #323130;
+      font-weight: 500;
+    }
+
+    .toggle-sublabel {
+      font-size: 11px;
+      color: #a19f9d;
+      margin-top: 2px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #c8c6c4;
+      border-radius: 22px;
+      transition: background 0.2s;
+    }
+
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: #d13438;
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(18px);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-report { background: #d13438; color: #fff; }
+    .btn-report:hover { background: #a4262c; }
+    .btn-report:disabled { background: #c8c6c4; cursor: not-allowed; }
+
+    .btn-cancel {
+      background: transparent;
+      color: #605e5c;
+      margin-top: 8px;
+    }
+
+    .btn-cancel:hover { color: #323130; }
+
+    /* States */
+    .state { display: none; }
+    .state.active { display: block; }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #edebe9;
+      border-top-color: #d13438;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .success-detail {
+      background: #f0fff0;
+      border: 1px solid #a7d9a7;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: #107c10;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .error-detail {
+      font-size: 12px;
+      color: #a4262c;
+      margin-top: 8px;
+      word-break: break-word;
+    }
+
+    /* Headers viewer */
+    .headers-toggle {
+      font-size: 12px;
+      color: #605e5c;
+      cursor: pointer;
+      margin-top: 12px;
+      text-decoration: underline;
+    }
+
+    .headers-toggle:hover { color: #323130; }
+
+    .headers-content {
+      display: none;
+      background: #f3f2f1;
+      border: 1px solid #edebe9;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 8px;
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 11px;
+      color: #605e5c;
+      text-align: left;
+      max-height: 150px;
+      overflow-y: auto;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .headers-content.visible { display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ============================================================= -->
+    <!-- STATE 1: Confirm & classify                                   -->
+    <!-- ============================================================= -->
+    <div id="state-confirm" class="state active">
+      <div class="icon-circle red">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 16l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>
+      </div>
+      <h1>Report this email?</h1>
+      <p class="subtitle">Classify the message and add any details for your security team.</p>
+
+      <!-- Email preview -->
+      <div class="email-preview">
+        <div class="field">
+          <div class="label">From</div>
+          <div class="value" id="preview-from">Loading...</div>
+        </div>
+        <div class="field">
+          <div class="label">Subject</div>
+          <div class="value" id="preview-subject">Loading...</div>
+        </div>
+        <div class="field">
+          <div class="label">Received</div>
+          <div class="value" id="preview-date">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Classification -->
+      <div class="classification">
+        <div class="section-label">Email Classification</div>
+        <div class="disposition-options">
+          <button class="disposition-btn selected" data-value="phishing">
+            <span class="d-icon">🎣</span>Phishing
+          </button>
+          <button class="disposition-btn" data-value="spam">
+            <span class="d-icon">📧</span>Spam
+          </button>
+          <button class="disposition-btn" data-value="suspicious">
+            <span class="d-icon">⚠️</span>Suspicious
+          </button>
+          <button class="disposition-btn" data-value="unknown">
+            <span class="d-icon">❓</span>Unknown
+          </button>
+        </div>
+        <textarea class="comment-box" id="user-comment" placeholder="Optional: describe why this looks suspicious..." maxlength="500"></textarea>
+      </div>
+
+      <!-- Auto-delete toggle -->
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Delete email after reporting</div>
+          <div class="toggle-sublabel">Moves to Deleted Items</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="auto-delete" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Headers toggle -->
+      <div class="headers-toggle" id="headers-toggle">View email headers</div>
+      <div class="headers-content" id="headers-content"></div>
+
+      <button class="btn btn-report" id="btn-submit" disabled>Report as <span id="btn-disposition-label">Phishing</span></button>
+      <button class="btn btn-cancel" id="btn-cancel">Cancel</button>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- STATE 2: Submitting                                           -->
+    <!-- ============================================================= -->
+    <div id="state-loading" class="state">
+      <div class="spinner"></div>
+      <h1>Submitting report...</h1>
+      <p class="subtitle">Packaging the message and sending to your security team.</p>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- STATE 3: Success                                              -->
+    <!-- ============================================================= -->
+    <div id="state-success" class="state">
+      <div class="icon-circle green">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+      </div>
+      <h1>Report submitted</h1>
+      <p class="subtitle" id="success-message">Thank you for helping keep our organisation safe. Your security team will review this message.</p>
+      <div class="success-detail" id="success-detail"></div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- STATE 4: Error                                                -->
+    <!-- ============================================================= -->
+    <div id="state-error" class="state">
+      <div class="icon-circle red">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      </div>
+      <h1>Something went wrong</h1>
+      <p class="subtitle">The report could not be submitted. Please try again.</p>
+      <p class="error-detail" id="error-detail"></p>
+      <button class="btn btn-report" id="btn-retry" style="margin-top:16px">Try Again</button>
+    </div>
+
+  </div>
+
+  <script>
+    // =============================================================
+    // CONFIGURATION
+    // =============================================================
+    var API_ENDPOINT = "https://YOUR_DOMAIN/api/report-phish";
+
+    // Customisable confirmation messages per disposition
+    var CONFIRMATION_MESSAGES = {
+      phishing: "This message has been flagged as a phishing attempt. Your security team will investigate and take action.",
+      spam: "This message has been flagged as spam. Your security team will review it.",
+      suspicious: "This message has been flagged as suspicious. Your security team will assess the risk.",
+      unknown: "This message has been submitted for review. Your security team will classify and investigate."
+    };
+
+    // =============================================================
+    // State
+    // =============================================================
+    var emailData = {};
+    var selectedDisposition = "phishing";
+    var emailHeaders = "";
+
+    function showState(id) {
+      document.querySelectorAll(".state").forEach(function (el) {
+        el.classList.remove("active");
+      });
+      document.getElementById("state-" + id).classList.add("active");
+    }
+
+    // =============================================================
+    // Disposition button handling
+    // =============================================================
+    document.querySelectorAll(".disposition-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".disposition-btn").forEach(function (b) {
+          b.classList.remove("selected");
+        });
+        btn.classList.add("selected");
+        selectedDisposition = btn.getAttribute("data-value");
+
+        // Update submit button label
+        var label = selectedDisposition.charAt(0).toUpperCase() + selectedDisposition.slice(1);
+        document.getElementById("btn-disposition-label").textContent = label;
+      });
+    });
+
+    // =============================================================
+    // Headers toggle
+    // =============================================================
+    document.getElementById("headers-toggle").addEventListener("click", function () {
+      var content = document.getElementById("headers-content");
+      content.classList.toggle("visible");
+      this.textContent = content.classList.contains("visible")
+        ? "Hide email headers"
+        : "View email headers";
+    });
+
+    // =============================================================
+    // Office.js initialisation
+    // =============================================================
+    Office.onReady(function (info) {
+      if (info.host !== Office.HostType.Outlook) return;
+
+      var item = Office.context.mailbox.item;
+      var profile = Office.context.mailbox.userProfile;
+
+      // Populate preview
+      document.getElementById("preview-from").textContent =
+        item.from ? item.from.displayName + " <" + item.from.emailAddress + ">" : "Unknown";
+      document.getElementById("preview-subject").textContent =
+        item.subject || "(no subject)";
+      document.getElementById("preview-date").textContent =
+        item.dateTimeCreated ? item.dateTimeCreated.toLocaleString() : "Unknown";
+
+      // Store metadata
+      emailData.reporter = profile.emailAddress;
+      emailData.reporterName = profile.displayName;
+      emailData.messageId = item.internetMessageId;
+      emailData.subject = item.subject;
+      emailData.sender = item.from ? item.from.emailAddress : "unknown";
+      emailData.senderName = item.from ? item.from.displayName : "unknown";
+      emailData.receivedAt = item.dateTimeCreated
+        ? item.dateTimeCreated.toISOString()
+        : null;
+
+      // Fetch email headers
+      if (typeof item.getAllInternetHeadersAsync === "function") {
+        item.getAllInternetHeadersAsync(function (result) {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            emailHeaders = result.value;
+            document.getElementById("headers-content").textContent = emailHeaders;
+          }
+        });
+      } else {
+        document.getElementById("headers-toggle").style.display = "none";
+      }
+
+      // Enable submit
+      document.getElementById("btn-submit").disabled = false;
+    });
+
+    // =============================================================
+    // Submit report
+    // =============================================================
+    function submitReport() {
+      showState("loading");
+
+      // Add classification data
+      emailData.disposition = selectedDisposition;
+      emailData.comment = document.getElementById("user-comment").value.trim();
+      emailData.reportedAt = new Date().toISOString();
+
+      // Include headers as separate field for easy SOC access
+      if (emailHeaders) {
+        emailData.headers = emailHeaders;
+      }
+
+      var item = Office.context.mailbox.item;
+
+      // Try to get full .eml (requires Mailbox 1.8+)
+      if (typeof item.getAsFileAsync === "function") {
+        item.getAsFileAsync(function (result) {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            emailData.emlBase64 = result.value;
+          }
+          sendToApi();
+        });
+      } else {
+        // Fallback: get the body as HTML
+        item.body.getAsync(Office.CoercionType.Html, function (result) {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            emailData.bodyHtml = result.value;
+          }
+          sendToApi();
+        });
+      }
+    }
+
+    function sendToApi() {
+      fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailData),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res;
+        })
+        .then(function () {
+          // Show custom confirmation based on disposition
+          var msg = CONFIRMATION_MESSAGES[selectedDisposition] || CONFIRMATION_MESSAGES.unknown;
+          document.getElementById("success-message").textContent = msg;
+
+          // Show summary
+          var detail = "Classification: " + selectedDisposition.toUpperCase() +
+            "\nReported by: " + emailData.reporter +
+            "\nSender: " + emailData.sender +
+            "\nMessage ID: " + (emailData.messageId || "N/A");
+          if (emailData.comment) {
+            detail += "\nYour comment: " + emailData.comment;
+          }
+          document.getElementById("success-detail").textContent = detail;
+
+          showState("success");
+
+          // Auto-delete: move to Deleted Items if toggled on
+          if (document.getElementById("auto-delete").checked) {
+            deleteReportedEmail();
+          }
+        })
+        .catch(function (err) {
+          document.getElementById("error-detail").textContent = err.message;
+          showState("error");
+        });
+    }
+
+    // =============================================================
+    // Auto-delete: move email to Deleted Items
+    // =============================================================
+    function deleteReportedEmail() {
+      var item = Office.context.mailbox.item;
+
+      // move() requires Mailbox 1.8+ — moves to well-known folder
+      if (typeof item.move === "function") {
+        item.move(
+          Office.MailboxEnums.WellKnownFolderName.DeletedItems,
+          function (result) {
+            if (result.status !== Office.AsyncResultStatus.Succeeded) {
+              console.warn("Could not move email to Deleted Items:", result.error);
+            }
+          }
+        );
+      } else {
+        // Fallback: try moveAsync if available
+        if (typeof item.moveAsync === "function") {
+          item.moveAsync(
+            Office.MailboxEnums.WellKnownFolderName.DeletedItems,
+            function (result) {
+              if (result.status !== Office.AsyncResultStatus.Succeeded) {
+                console.warn("Could not move email:", result.error);
+              }
+            }
+          );
+        }
+      }
+    }
+
+    // =============================================================
+    // Button handlers
+    // =============================================================
+    document.getElementById("btn-submit").addEventListener("click", submitReport);
+    document.getElementById("btn-retry").addEventListener("click", submitReport);
+    document.getElementById("btn-cancel").addEventListener("click", function () {
+      if (Office.context.ui && Office.context.ui.closeContainer) {
+        Office.context.ui.closeContainer();
+      }
+    });
+  </script>
+</body>
+</html>

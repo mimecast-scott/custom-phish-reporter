@@ -1,1 +1,363 @@
-ehlo world
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Phish Reporter — Outlook Add-in PoC</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 60px 24px 48px;
+      text-align: center;
+      border-bottom: 3px solid #d13438;
+    }
+
+    .hero-icon {
+      width: 72px;
+      height: 72px;
+      background: #d13438;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 30px rgba(209, 52, 56, 0.4);
+    }
+
+    .hero-icon svg { width: 36px; height: 36px; fill: #fff; }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(209, 52, 56, 0.2);
+      border: 1px solid rgba(209, 52, 56, 0.5);
+      color: #ff6b6b;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: #a0a0b8;
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Content */
+    .content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    .card {
+      background: #16213e;
+      border: 1px solid #1e2d4a;
+      border-radius: 10px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h2 .dot {
+      width: 8px;
+      height: 8px;
+      background: #d13438;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .card p, .card li {
+      font-size: 14px;
+      color: #a0a0b8;
+      line-height: 1.7;
+    }
+
+    .card ul {
+      list-style: none;
+      margin-top: 10px;
+    }
+
+    .card ul li {
+      padding: 6px 0 6px 20px;
+      position: relative;
+    }
+
+    .card ul li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #d13438;
+      font-weight: 600;
+    }
+
+    .card code {
+      background: #0f1a2e;
+      color: #ff6b6b;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+    }
+
+    /* File tree */
+    .file-tree {
+      background: #0f1a2e;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 14px;
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 13px;
+      color: #7faacc;
+      line-height: 1.8;
+    }
+
+    .file-tree .folder { color: #ffc857; }
+    .file-tree .file { color: #a0a0b8; }
+    .file-tree .highlight { color: #ff6b6b; }
+
+    /* Flow diagram */
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .flow-step {
+      background: #0f1a2e;
+      border: 1px solid #1e2d4a;
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+      font-size: 13px;
+      color: #e0e0e0;
+      min-width: 120px;
+    }
+
+    .flow-step .step-num {
+      display: block;
+      font-size: 11px;
+      color: #d13438;
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .flow-arrow {
+      color: #d13438;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /* Status */
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .status-item {
+      background: #0f1a2e;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .status-item .label {
+      font-size: 11px;
+      color: #606080;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .status-item .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .status-item .value.green { color: #4caf50; }
+    .status-item .value.yellow { color: #ffc857; }
+    .status-item .value.red { color: #ff6b6b; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: #404060;
+      border-top: 1px solid #1e2d4a;
+    }
+
+    .footer a {
+      color: #d13438;
+      text-decoration: none;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 500px) {
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .status-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 16l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>
+    </div>
+    <div class="badge">Proof of Concept</div>
+    <h1>Custom Phish Reporter</h1>
+    <p>A lightweight Outlook add-in that lets users report suspicious emails to their security team with one click — no authentication required.</p>
+  </div>
+
+  <div class="content">
+
+    <!-- How it works -->
+    <div class="card">
+      <h2><span class="dot"></span>How It Works</h2>
+      <p>When a user clicks <strong>Report Phish</strong> in Outlook, the add-in opens a taskpane that reads the email details via Office.js and submits them to your API.</p>
+      <div class="flow">
+        <div class="flow-step">
+          <span class="step-num">Step 1</span>
+          User clicks<br/><strong>Report Phish</strong>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">
+          <span class="step-num">Step 2</span>
+          Taskpane grabs<br/><strong>email + reporter</strong>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">
+          <span class="step-num">Step 3</span>
+          POSTs .eml to<br/><strong>your API</strong>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">
+          <span class="step-num">Step 4</span>
+          Confirmation<br/><strong>shown to user</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- What gets sent -->
+    <div class="card">
+      <h2><span class="dot"></span>What Gets Submitted</h2>
+      <p>The report payload is sent as JSON and includes everything your SOC team needs:</p>
+      <ul>
+        <li><code>reporter</code> — the mailbox owner's email (from Office.js userProfile)</li>
+        <li><code>reporterName</code> — display name of the reporter</li>
+        <li><code>messageId</code> — the internet message ID of the suspicious email</li>
+        <li><code>subject</code> — email subject line</li>
+        <li><code>sender</code> — the From address</li>
+        <li><code>receivedAt</code> — timestamp the email was received</li>
+        <li><code>emlBase64</code> — the full original .eml file (base64 encoded)</li>
+      </ul>
+    </div>
+
+    <!-- No auth -->
+    <div class="card">
+      <h2><span class="dot"></span>No Authentication Required</h2>
+      <p>Unlike the standard Mimecast add-in which requires users to log in, this PoC identifies the reporter using <code>Office.context.mailbox.userProfile.emailAddress</code> — which is provided by Outlook itself since the user is already signed in. No OAuth, no SSO, no login screen.</p>
+    </div>
+
+    <!-- Repo structure -->
+    <div class="card">
+      <h2><span class="dot"></span>Repository Structure</h2>
+      <div class="file-tree">
+        <span class="folder">custom-phish-reporter/</span><br/>
+        ├── <span class="highlight">manifest.xml</span> &nbsp;← sideload this into Outlook<br/>
+        ├── <span class="file">functions.html</span> &nbsp;← Office.js shim<br/>
+        ├── <span class="file">index.html</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← you are here<br/>
+        ├── <span class="folder">taskpane/</span><br/>
+        │&nbsp;&nbsp; └── <span class="highlight">report.html</span> &nbsp;← the reporting UI<br/>
+        └── <span class="folder">assets/</span><br/>
+        &nbsp;&nbsp;&nbsp; └── <span class="file">icon-*.png</span> &nbsp;&nbsp;← add-in icons
+      </div>
+    </div>
+
+    <!-- Platform support -->
+    <div class="card">
+      <h2><span class="dot"></span>Platform Support</h2>
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="label">Outlook Desktop</div>
+          <div class="value green">Supported</div>
+        </div>
+        <div class="status-item">
+          <div class="label">Outlook Web (OWA)</div>
+          <div class="value green">Supported</div>
+        </div>
+        <div class="status-item">
+          <div class="label">Outlook Mobile</div>
+          <div class="value green">Supported</div>
+        </div>
+        <div class="status-item">
+          <div class="label">Mailbox Requirement</div>
+          <div class="value yellow">v1.8+</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next steps -->
+    <div class="card">
+      <h2><span class="dot"></span>Next Steps for Production</h2>
+      <ul>
+        <li>Set up a backend API endpoint to receive the POST payload</li>
+        <li>Add domain validation on the server (only accept reports from your tenant)</li>
+        <li>Generate icon assets at all required sizes</li>
+        <li>Replace the placeholder GUID in <code>manifest.xml</code></li>
+        <li>Deploy via Microsoft 365 Admin Centre for org-wide rollout</li>
+        <li>Consider adding a feedback loop — notify reporters of outcomes</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Custom Phish Reporter PoC &middot; Built for learning &middot;
+    <a href="https://github.com/mimecast-scott/custom-phish-reporter">View on GitHub</a>
+  </div>
+
+</body>
+</html>

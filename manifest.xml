@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+  xsi:type="MailApp">
+
+  <!-- Generate your own GUID at https://www.guidgenerator.com -->
+  <Id>4c5c3334-226e-4932-a084-1fa63a99a998</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Your Company Name</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Report Phish"/>
+  <Description DefaultValue="Report suspicious or phishing emails to your security team with one click."/>
+
+  <IconUrl DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-128.png"/>
+  <SupportUrl DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/"/>
+
+  <AppDomains>
+    <AppDomain>https://mimecast-scott.github.io</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.8"/>
+    </Sets>
+  </Requirements>
+
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/taskpane/report.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+
+  <Permissions>ReadWriteMailbox</Permissions>
+
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+  <DisableEntityHighlighting>true</DisableEntityHighlighting>
+
+  <!-- ============================================================= -->
+  <!-- VERSION OVERRIDES v1.0 — Desktop + Web                        -->
+  <!-- ============================================================= -->
+  <VersionOverrides
+    xmlns="http://schemas.microsoft.com/office/mailappversionoverrides"
+    xsi:type="VersionOverridesV1_0">
+    <Requirements>
+      <bt:Sets DefaultMinVersion="1.8">
+        <bt:Set Name="Mailbox"/>
+      </bt:Sets>
+    </Requirements>
+    <Hosts>
+      <Host xsi:type="MailHost">
+        <DesktopFormFactor>
+          <FunctionFile resid="FunctionFileUrl"/>
+          <ExtensionPoint xsi:type="MessageReadCommandSurface">
+            <OfficeTab id="TabDefault">
+              <Group id="PhishReportGroup">
+                <Label resid="GroupLabel"/>
+                <Control xsi:type="Button" id="ReportPhishBtn">
+                  <Label resid="ReportBtnLabel"/>
+                  <Supertip>
+                    <Title resid="ReportBtnTipTitle"/>
+                    <Description resid="ReportBtnTipDesc"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="icon16"/>
+                    <bt:Image size="32" resid="icon32"/>
+                    <bt:Image size="80" resid="icon80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="ReportTaskpaneUrl"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="icon16" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-16.png"/>
+        <bt:Image id="icon32" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-32.png"/>
+        <bt:Image id="icon80" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="FunctionFileUrl" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/functions.html"/>
+        <bt:Url id="ReportTaskpaneUrl" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/taskpane/report.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GroupLabel" DefaultValue="Report Phish"/>
+        <bt:String id="ReportBtnLabel" DefaultValue="Report Phish"/>
+        <bt:String id="ReportBtnTipTitle" DefaultValue="Report this message"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="ReportBtnTipDesc" DefaultValue="Submit this message as a suspected phishing attempt for analysis by your security team."/>
+      </bt:LongStrings>
+    </Resources>
+
+    <!-- ============================================================= -->
+    <!-- VERSION OVERRIDES v1.1 — Desktop + Web + Mobile               -->
+    <!-- ============================================================= -->
+    <VersionOverrides
+      xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1"
+      xsi:type="VersionOverridesV1_1">
+      <Hosts>
+        <Host xsi:type="MailHost">
+
+          <DesktopFormFactor>
+            <FunctionFile resid="FunctionFileUrl"/>
+            <ExtensionPoint xsi:type="MessageReadCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="PhishReportGroup">
+                  <Label resid="GroupLabel"/>
+                  <Control xsi:type="Button" id="ReportPhishBtn">
+                    <Label resid="ReportBtnLabel"/>
+                    <Supertip>
+                      <Title resid="ReportBtnTipTitle"/>
+                      <Description resid="ReportBtnTipDesc"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="icon16"/>
+                      <bt:Image size="32" resid="icon32"/>
+                      <bt:Image size="80" resid="icon80"/>
+                    </Icon>
+                    <Action xsi:type="ShowTaskpane">
+                      <SourceLocation resid="ReportTaskpaneUrl"/>
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+          </DesktopFormFactor>
+
+          <MobileFormFactor>
+            <FunctionFile resid="FunctionFileUrl"/>
+            <ExtensionPoint xsi:type="MobileMessageReadCommandSurface">
+              <Group id="PhishReportGroup">
+                <Label resid="GroupLabel"/>
+                <Control xsi:type="MobileButton" id="ReportPhishBtn">
+                  <Label resid="ReportBtnLabel"/>
+                  <Icon xsi:type="bt:MobileIconList">
+                    <bt:Image size="25" scale="1" resid="mob25s1"/>
+                    <bt:Image size="25" scale="2" resid="mob25s2"/>
+                    <bt:Image size="25" scale="3" resid="mob25s3"/>
+                    <bt:Image size="32" scale="1" resid="mob32s1"/>
+                    <bt:Image size="32" scale="2" resid="mob32s2"/>
+                    <bt:Image size="32" scale="3" resid="mob32s3"/>
+                    <bt:Image size="48" scale="1" resid="mob48s1"/>
+                    <bt:Image size="48" scale="2" resid="mob48s2"/>
+                    <bt:Image size="48" scale="3" resid="mob48s3"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="ReportTaskpaneUrl"/>
+                  </Action>
+                </Control>
+              </Group>
+            </ExtensionPoint>
+          </MobileFormFactor>
+
+        </Host>
+      </Hosts>
+      <Resources>
+        <bt:Images>
+          <bt:Image id="icon16" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-16.png"/>
+          <bt:Image id="icon32" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-32.png"/>
+          <bt:Image id="icon80" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-80.png"/>
+          <bt:Image id="mob25s1" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-25.png"/>
+          <bt:Image id="mob25s2" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-50.png"/>
+          <bt:Image id="mob25s3" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-75.png"/>
+          <bt:Image id="mob32s1" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-32.png"/>
+          <bt:Image id="mob32s2" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-64.png"/>
+          <bt:Image id="mob32s3" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-96.png"/>
+          <bt:Image id="mob48s1" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-48.png"/>
+          <bt:Image id="mob48s2" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-96.png"/>
+          <bt:Image id="mob48s3" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/assets/icon-144.png"/>
+        </bt:Images>
+        <bt:Urls>
+          <bt:Url id="FunctionFileUrl" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/functions.html"/>
+          <bt:Url id="ReportTaskpaneUrl" DefaultValue="https://mimecast-scott.github.io/custom-phish-reporter/taskpane/report.html"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="GroupLabel" DefaultValue="Report Phish"/>
+          <bt:String id="ReportBtnLabel" DefaultValue="Report Phish"/>
+          <bt:String id="ReportBtnTipTitle" DefaultValue="Report this message"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="ReportBtnTipDesc" DefaultValue="Submit this message as a suspected phishing attempt for analysis by your security team."/>
+        </bt:LongStrings>
+      </Resources>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>
