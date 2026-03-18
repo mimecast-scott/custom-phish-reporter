@@ -432,7 +432,7 @@
           <div class="toggle-sublabel">Moves to Deleted Items</div>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="auto-delete" checked />
+          <input type="checkbox" id="auto-delete" />
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -735,30 +735,34 @@
     // Auto-delete: move email to Deleted Items
     // =============================================================
     function deleteReportedEmail() {
-      var item = Office.context.mailbox.item;
+      try {
+        var item = Office.context.mailbox.item;
+        var deletedItems = Office.MailboxEnums &&
+                           Office.MailboxEnums.WellKnownFolderName &&
+                           Office.MailboxEnums.WellKnownFolderName.DeletedItems;
 
-      // move() requires Mailbox 1.8+ — moves to well-known folder
-      if (typeof item.move === "function") {
-        item.move(
-          Office.MailboxEnums.WellKnownFolderName.DeletedItems,
-          function (result) {
+        if (!deletedItems) {
+          console.warn("WellKnownFolderName.DeletedItems not supported in this Outlook version");
+          return;
+        }
+
+        if (typeof item.move === "function") {
+          item.move(deletedItems, function (result) {
             if (result.status !== Office.AsyncResultStatus.Succeeded) {
               console.warn("Could not move email to Deleted Items:", result.error);
             }
-          }
-        );
-      } else {
-        // Fallback: try moveAsync if available
-        if (typeof item.moveAsync === "function") {
-          item.moveAsync(
-            Office.MailboxEnums.WellKnownFolderName.DeletedItems,
-            function (result) {
-              if (result.status !== Office.AsyncResultStatus.Succeeded) {
-                console.warn("Could not move email:", result.error);
-              }
+          });
+        } else if (typeof item.moveAsync === "function") {
+          item.moveAsync(deletedItems, function (result) {
+            if (result.status !== Office.AsyncResultStatus.Succeeded) {
+              console.warn("Could not move email:", result.error);
             }
-          );
+          });
+        } else {
+          console.warn("No move method available — email not deleted");
         }
+      } catch (err) {
+        console.warn("Auto-delete failed:", err.message);
       }
     }
 
