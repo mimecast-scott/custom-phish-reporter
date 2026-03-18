@@ -289,6 +289,57 @@
     }
 
     /* Headers viewer */
+    /* Mimecast headers card */
+    .mc-headers {
+      background: #fff;
+      border: 1px solid #edebe9;
+      border-radius: 6px;
+      padding: 14px;
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .mc-headers .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #605e5c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .mc-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 6px 0;
+      border-bottom: 1px solid #f3f2f1;
+    }
+
+    .mc-header-row:last-child { border-bottom: none; }
+
+    .mc-header-name {
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      font-size: 11px;
+      color: #605e5c;
+      flex-shrink: 0;
+      margin-right: 12px;
+    }
+
+    .mc-header-value {
+      font-size: 12px;
+      color: #323130;
+      font-weight: 500;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .mc-none {
+      font-size: 12px;
+      color: #a19f9d;
+      font-style: italic;
+    }
+
     .headers-toggle {
       font-size: 12px;
       color: #605e5c;
@@ -346,6 +397,12 @@
           <div class="label">Received</div>
           <div class="value" id="preview-date">Loading...</div>
         </div>
+      </div>
+
+      <!-- Mimecast headers -->
+      <div class="mc-headers" id="mc-headers-card" style="display:none">
+        <div class="section-label">Mimecast Headers</div>
+        <div id="mc-headers-list"></div>
       </div>
 
       <!-- Classification -->
@@ -428,7 +485,7 @@
     // =============================================================
     // CONFIGURATION
     // =============================================================
-    var API_ENDPOINT = "https://YOUR_DOMAIN/api/report-phish";
+    var API_ENDPOINT = "https://report-phish.mck.la/api/report-phish";
 
     // Customisable confirmation messages per disposition
     var CONFIRMATION_MESSAGES = {
@@ -444,12 +501,64 @@
     var emailData = {};
     var selectedDisposition = "phishing";
     var emailHeaders = "";
+    var callbackToken = "";
 
     function showState(id) {
       document.querySelectorAll(".state").forEach(function (el) {
         el.classList.remove("active");
       });
       document.getElementById("state-" + id).classList.add("active");
+    }
+
+    // =============================================================
+    // Parse Mimecast-specific headers from raw header string
+    // =============================================================
+    function parseMimecastHeaders(raw) {
+      var results = {};
+      if (!raw) return results;
+
+      // Unfold continuation lines (lines starting with whitespace are
+      // continuations of the previous header value per RFC 2822)
+      var unfolded = raw.replace(/\r?\n[ \t]+/g, " ");
+      var lines = unfolded.split(/\r?\n/);
+
+      lines.forEach(function (line) {
+        var match = line.match(/^(x-mimecast-[^:]+|x-mc-[^:]+)\s*:\s*(.*)/i);
+        if (match) {
+          results[match[1].toLowerCase()] = match[2].trim();
+        }
+      });
+
+      return results;
+    }
+
+    function renderMimecastHeaders(headers) {
+      var container = document.getElementById("mc-headers-list");
+      var card = document.getElementById("mc-headers-card");
+      var keys = Object.keys(headers);
+
+      if (keys.length === 0) {
+        card.style.display = "none";
+        return;
+      }
+
+      card.style.display = "block";
+      container.innerHTML = "";
+
+      keys.forEach(function (key) {
+        var row = document.createElement("div");
+        row.className = "mc-header-row";
+        row.innerHTML =
+          '<span class="mc-header-name">' + escapeHtml(key) + '</span>' +
+          '<span class="mc-header-value">' + escapeHtml(headers[key]) + '</span>';
+        container.appendChild(row);
+      });
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement("div");
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
     }
 
     // =============================================================
@@ -508,12 +617,30 @@
         ? item.dateTimeCreated.toISOString()
         : null;
 
+      // Fetch callback token for server-side identity verification.
+      // This is a signed JWT from Exchange that your API can validate
+      // to confirm the reporter's identity without any login screen.
+      if (typeof Office.context.mailbox.getCallbackTokenAsync === "function") {
+        Office.context.mailbox.getCallbackTokenAsync(function (result) {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            callbackToken = result.value;
+          } else {
+            console.warn("Could not get callback token:", result.error);
+          }
+        });
+      }
+
       // Fetch email headers
       if (typeof item.getAllInternetHeadersAsync === "function") {
         item.getAllInternetHeadersAsync(function (result) {
           if (result.status === Office.AsyncResultStatus.Succeeded) {
             emailHeaders = result.value;
             document.getElementById("headers-content").textContent = emailHeaders;
+
+            // Extract and display Mimecast-specific headers
+            var mcHeaders = parseMimecastHeaders(emailHeaders);
+            renderMimecastHeaders(mcHeaders);
+            emailData.mimecastHeaders = mcHeaders;
           }
         });
       } else {
@@ -538,6 +665,11 @@
       // Include headers as separate field for easy SOC access
       if (emailHeaders) {
         emailData.headers = emailHeaders;
+      }
+
+      // Include callback token for server-side identity verification
+      if (callbackToken) {
+        emailData.callbackToken = callbackToken;
       }
 
       var item = Office.context.mailbox.item;
